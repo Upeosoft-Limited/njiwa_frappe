@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-09-03 09:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "connection_section",
+  "api_key",
+  "base_url",
+  "sending_section",
+  "default_from",
+  "wait_for_result"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "description": "Untick to stop this site sending anything at all. Your key and settings are kept. While it is off, any attempt to send fails with a message saying so rather than quietly doing nothing, so you find out from the error log instead of from a customer.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Send messages through Njiwa"
+  },
+  {
+   "fieldname": "connection_section",
+   "fieldtype": "Section Break",
+   "label": "Connection"
+  },
+  {
+   "description": "Create a key at console.upeo.ai under API keys, then paste it here. A key starting sk_live_ sends real WhatsApp messages. A key starting sk_test_ checks every request and stores every message but delivers nothing, which is what you want until you are sure. Njiwa shows a key once and stores only its fingerprint, so a lost key is replaced rather than recovered. Here it is stored encrypted and is not shown again after you save.",
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API key",
+   "reqd": 1
+  },
+  {
+   "default": "https://njiwa.upeo.ai",
+   "description": "Where Njiwa lives. Leave this exactly as it is. It exists for sites that have been given their own Njiwa address, and changing it otherwise stops messages going anywhere.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Njiwa address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sending_section",
+   "fieldtype": "Section Break",
+   "label": "Sending"
+  },
+  {
+   "description": "Which of your linked WhatsApp numbers sends, when the code asking for a message does not name one. Write it in full international form, digits only, like 254712345678. Leave it empty to use the number marked default in the Njiwa console, which is the right answer if the account has one number. Test connection lists the numbers this account actually has.",
+   "fieldname": "default_from",
+   "fieldtype": "Data",
+   "label": "Send from"
+  },
+  {
+   "default": "0",
+   "description": "Leave this off. Njiwa answers the moment it has stored the message, then delivers it, retries a failure five times and reports the outcome, all without holding your site up. Turn it on only in a script you are watching, where you want the real result on screen: it waits up to 15 seconds for the message to be sent or fail. Turned on for a form save, it makes a person wait 15 seconds for something Njiwa was going to do anyway.",
+   "fieldname": "wait_for_result",
+   "fieldtype": "Check",
+   "label": "Wait for the result before returning"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-09-03 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Njiwa",
+ "name": "Njiwa Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
