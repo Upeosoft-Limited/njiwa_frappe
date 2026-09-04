@@ -1,10 +1,33 @@
 # Njiwa for Frappe
 
-Settings, and one call to send a WhatsApp message. That is the whole app.
+Ready-made moments to WhatsApp your customers on, and one call to send anything
+else yourself.
 
-It adds no document events, no scheduled jobs and no buttons to your forms.
-Deciding *when* a customer gets a message belongs in your own code, where you
-can read it later and change it without waiting for us.
+The app watches four doctypes at two moments each - Sales Order, Sales Invoice,
+Payment Entry and Delivery Note, on submit and on cancel - and turns them into
+ten events you can switch on one at a time:
+
+| Event | Sent when |
+| --- | --- |
+| Order confirmed | A Sales Order is submitted |
+| Order cancelled | A Sales Order is cancelled |
+| Invoice issued | A Sales Invoice is submitted |
+| Invoice cancelled | A Sales Invoice is cancelled |
+| Credit note issued | A Sales Invoice marked as a return is submitted |
+| Payment received | A Payment Entry is submitted |
+| Payment cancelled | A Payment Entry is cancelled |
+| Goods on their way | A Delivery Note is submitted |
+| Delivery cancelled | A Delivery Note is cancelled |
+| Tell me about new orders | A Sales Order is submitted, to your own number |
+
+**Every one of them is off until you turn it on**, so installing the app sends
+nothing to anybody. Each has a box of wording you can edit, and clearing that
+box turns one message off while leaving the event alone. Nothing is sent while
+you import, migrate, patch or run tests.
+
+There are still no scheduled jobs and no buttons added to your forms. For any
+moment the ten do not cover, your own code sends it: one import and one call,
+which belongs in a background job whenever somebody is waiting for a screen.
 
 ## Install
 
