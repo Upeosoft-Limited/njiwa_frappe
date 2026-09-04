@@ -37,14 +37,17 @@ bench get-app https://github.com/Upeosoft-Limited/njiwa_frappe
 bench --site yoursite.local install-app njiwa_frappe
 ```
 
-The repository is private, so this works for a bench whose machine has a key
-that can read it. Over anonymous HTTPS the same address answers 404, which
-looks exactly like a repository that does not exist; if `bench get-app` gives
-you that, the access is what to check, not the address.
+That is the whole install. The repository is public, so it needs no key, no
+token and no account: `bench get-app` clones it over plain HTTPS the way it
+clones any other Frappe app, and `bench build` runs as part of that, which is
+what puts the desk icon where the desk looks for it.
+
+To upgrade later, `bench get-app` is not the command; see **Upgrade** below.
 
 This app is developed inside the Njiwa repository at `packages/njiwa-frappe`
-and published to that repository. To install from a local copy of the folder
-instead, do to it by hand what `bench get-app` does to a clone:
+and published to that repository from there, so the two never drift apart. If
+you are working on the app itself and want a local copy installed rather than a
+clone, do to it by hand what `bench get-app` does:
 
 ```bash
 cd ~/frappe-bench
