@@ -6,23 +6,63 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "setup_tab",
+  "intro_section",
   "enabled",
   "connection_section",
   "api_key",
-  "base_url",
   "sending_section",
   "default_from",
-  "wait_for_result"
+  "sending_column",
+  "wait_for_result",
+  "advanced_section",
+  "base_url",
+  "customer_tab",
+  "placeholders_section",
+  "order_section",
+  "event_order_placed",
+  "message_order_placed",
+  "event_order_cancelled",
+  "message_order_cancelled",
+  "invoice_section",
+  "event_invoice_issued",
+  "message_invoice_issued",
+  "event_invoice_cancelled",
+  "message_invoice_cancelled",
+  "event_credit_note",
+  "message_credit_note",
+  "payment_section",
+  "event_payment_received",
+  "message_payment_received",
+  "event_payment_cancelled",
+  "message_payment_cancelled",
+  "delivery_section",
+  "event_delivery_sent",
+  "message_delivery_sent",
+  "event_delivery_cancelled",
+  "message_delivery_cancelled",
+  "owner_tab",
+  "owner_section",
+  "event_new_order",
+  "new_order_alert_on",
+  "alert_numbers",
+  "message_new_order"
  ],
  "fields": [
   {
+   "description": "Njiwa sends WhatsApp messages for this site, through the account settled here. The events on the next tab are ready-made moments to send on, and every one of them is off until you turn it on. Your own code can still send whatever it likes by calling njiwa_frappe.api.send.",
+   "fieldname": "intro_section",
+   "fieldtype": "Section Break"
+  },
+  {
    "default": "1",
-   "description": "Untick to stop this site sending anything at all. Your key and settings are kept. While it is off, any attempt to send fails with a message saying so rather than quietly doing nothing, so you find out from the error log instead of from a customer.",
+   "description": "Untick to stop this site sending anything at all; your key and settings are kept. While it is off, an attempt to send fails with a message saying so rather than quietly doing nothing, so you find out from the error log instead of from a customer.",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Send messages through Njiwa"
   },
   {
+   "description": "One key is the whole connection. Paste it, save, then press Test connection: Njiwa answers with the numbers this account really has, so you find out here rather than at the moment a customer should have been messaged.",
    "fieldname": "connection_section",
    "fieldtype": "Section Break",
    "label": "Connection"
@@ -35,14 +75,7 @@
    "reqd": 1
   },
   {
-   "default": "https://njiwa.upeo.ai",
-   "description": "Where Njiwa lives. Leave this exactly as it is. It exists for sites that have been given their own Njiwa address, and changing it otherwise stops messages going anywhere.",
-   "fieldname": "base_url",
-   "fieldtype": "Data",
-   "label": "Njiwa address",
-   "reqd": 1
-  },
-  {
+   "description": "Both of these are defaults, and nothing more. A call to njiwa_frappe.api.send that names its own sending number, or passes wait, ignores what is set here and decides for itself.",
    "fieldname": "sending_section",
    "fieldtype": "Section Break",
    "label": "Sending"
@@ -54,17 +87,243 @@
    "label": "Send from"
   },
   {
+   "fieldname": "sending_column",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
    "description": "Leave this off. Njiwa answers the moment it has stored the message, then delivers it, retries a failure five times and reports the outcome, all without holding your site up. Turn it on only in a script you are watching, where you want the real result on screen: it waits up to 15 seconds for the message to be sent or fail. Turned on for a form save, it makes a person wait 15 seconds for something Njiwa was going to do anyway.",
    "fieldname": "wait_for_result",
    "fieldtype": "Check",
-   "label": "Wait for the result before returning"
+   "label": "Wait for the result"
+  },
+  {
+   "collapsible": 1,
+   "description": "Nothing in here needs changing to send a message. It is open for the few sites that were given a Njiwa address of their own.",
+   "fieldname": "advanced_section",
+   "fieldtype": "Section Break",
+   "label": "Advanced"
+  },
+  {
+   "default": "https://njiwa.upeo.ai",
+   "description": "Where Njiwa lives. Leave this exactly as it is. It exists for sites that have been given their own Njiwa address, and changing it otherwise stops messages going anywhere.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Njiwa address",
+   "reqd": 1
+  },
+  {
+   "fieldname": "setup_tab",
+   "fieldtype": "Tab Break",
+   "label": "Setup"
+  },
+  {
+   "fieldname": "customer_tab",
+   "fieldtype": "Tab Break",
+   "label": "Messages to your customers"
+  },
+  {
+   "description": "Every message is plain text. Anything in braces is filled in from the document:<br><code>{first_name}</code> &mdash; The first word of the customer's name, or 'there' if there is none.<br><code>{last_name}</code> &mdash; The rest of the customer's name.<br><code>{customer_name}</code> &mdash; The customer's name as ERPNext holds it.<br><code>{order_number}</code> &mdash; The name of the document that caused the message, such as SINV-00042.<br><code>{order_total}</code> &mdash; The document total, with your currency symbol.<br><code>{order_date}</code> &mdash; The posting date, or the order date on a Sales Order.<br><code>{order_status}</code> &mdash; The document's ERPNext status, such as 'To Deliver and Bill'.<br><code>{payment_method}</code> &mdash; The mode of payment, where the document has one.<br><code>{items}</code> &mdash; One line per row, as '2 x Blue shirt'.<br><code>{item_count}</code> &mdash; How many items in total.<br><code>{shop_name}</code> &mdash; The company on the document.<br><code>{order_url}</code> &mdash; A link to the document on your website. It only opens for a customer who has a portal login, so leave it out unless yours do.<br><code>{admin_url}</code> &mdash; A link that opens the document in your desk. Only put this in the message to yourself: a customer cannot open it.<br><br>A placeholder that does not exist, <code>{order_no}</code> say, is removed before sending rather than posted to a customer.<br><br><b>Cancelling cascades.</b> Cancelling a Sales Invoice in ERPNext usually means cancelling its Delivery Note and its Payment Entry first, so a customer will hear about one cancellation once for every cancel event you have switched on. Pick the one document your customers actually know about.",
+   "fieldname": "placeholders_section",
+   "fieldtype": "Section Break",
+   "label": "How the wording works"
+  },
+  {
+   "description": "Sent when a Sales Order is submitted or cancelled. Shops that quote and confirm before invoicing work from these; shops that sell over a counter never make one.",
+   "fieldname": "order_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Order"
+  },
+  {
+   "default": "0",
+   "description": "For shops that confirm an order before it is invoiced. It tells the customer you have the order and what it comes to.",
+   "fieldname": "event_order_placed",
+   "fieldtype": "Check",
+   "label": "Order confirmed"
+  },
+  {
+   "depends_on": "eval:doc.event_order_placed",
+   "description": "The message sent when an order is confirmed. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_order_placed",
+   "fieldtype": "Small Text",
+   "label": "Order confirmed"
+  },
+  {
+   "default": "0",
+   "description": "Worth sending. A cancellation nobody explained is what turns into a phone call.",
+   "fieldname": "event_order_cancelled",
+   "fieldtype": "Check",
+   "label": "Order cancelled"
+  },
+  {
+   "depends_on": "eval:doc.event_order_cancelled",
+   "description": "The message sent when an order is cancelled. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_order_cancelled",
+   "fieldtype": "Small Text",
+   "label": "Order cancelled"
+  },
+  {
+   "description": "Sent when a Sales Invoice is submitted or cancelled. A credit note is a Sales Invoice with Is Return ticked, and it has an event of its own below rather than being sent as an invoice.",
+   "fieldname": "invoice_section",
+   "fieldtype": "Section Break",
+   "label": "Sales Invoice"
+  },
+  {
+   "default": "0",
+   "description": "The one most shops want. The customer gets the invoice number and the amount where they will actually read it.",
+   "fieldname": "event_invoice_issued",
+   "fieldtype": "Check",
+   "label": "Invoice issued"
+  },
+  {
+   "depends_on": "eval:doc.event_invoice_issued",
+   "description": "The message sent when an invoice is issued. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_invoice_issued",
+   "fieldtype": "Small Text",
+   "label": "Invoice issued"
+  },
+  {
+   "default": "0",
+   "description": "Tells the customer they do not owe it after all. Read the note about cancelling cascading before you switch this on.",
+   "fieldname": "event_invoice_cancelled",
+   "fieldtype": "Check",
+   "label": "Invoice cancelled"
+  },
+  {
+   "depends_on": "eval:doc.event_invoice_cancelled",
+   "description": "The message sent when an invoice is cancelled. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_invoice_cancelled",
+   "fieldtype": "Small Text",
+   "label": "Invoice cancelled"
+  },
+  {
+   "default": "0",
+   "description": "Money going back. Saying so stops the 'where is my refund' message before it is sent.",
+   "fieldname": "event_credit_note",
+   "fieldtype": "Check",
+   "label": "Credit note issued"
+  },
+  {
+   "depends_on": "eval:doc.event_credit_note",
+   "description": "The message sent when a credit note is issued. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_credit_note",
+   "fieldtype": "Small Text",
+   "label": "Credit note issued"
+  },
+  {
+   "description": "Only money coming in from a customer. A supplier payment and an internal transfer are Payment Entries too, and this never touches either of them.",
+   "fieldname": "payment_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Entry"
+  },
+  {
+   "default": "0",
+   "description": "A receipt, sent the moment you post the payment. It is the message customers ask for most and the one that stops them ringing to check.",
+   "fieldname": "event_payment_received",
+   "fieldtype": "Check",
+   "label": "Payment received"
+  },
+  {
+   "depends_on": "eval:doc.event_payment_received",
+   "description": "The message sent when a payment is received. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_payment_received",
+   "fieldtype": "Small Text",
+   "label": "Payment received"
+  },
+  {
+   "default": "0",
+   "description": "A receipt taken back, which usually means a cheque bounced or the money was posted against the wrong customer. Leave it off unless you want customers told about your corrections.",
+   "fieldname": "event_payment_cancelled",
+   "fieldtype": "Check",
+   "label": "Payment cancelled"
+  },
+  {
+   "depends_on": "eval:doc.event_payment_cancelled",
+   "description": "The message sent when a payment is cancelled. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_payment_cancelled",
+   "fieldtype": "Small Text",
+   "label": "Payment cancelled"
+  },
+  {
+   "description": "Sent when a Delivery Note is submitted or cancelled. A sales return is a Delivery Note with Is Return ticked, and neither event fires for one.",
+   "fieldname": "delivery_section",
+   "fieldtype": "Section Break",
+   "label": "Delivery Note"
+  },
+  {
+   "default": "0",
+   "description": "The 'it has left us' message. ERPNext will not tell the customer anything at this moment; this arrives where people actually look.",
+   "fieldname": "event_delivery_sent",
+   "fieldtype": "Check",
+   "label": "Goods on their way"
+  },
+  {
+   "depends_on": "eval:doc.event_delivery_sent",
+   "description": "The message sent when goods are sent out. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_delivery_sent",
+   "fieldtype": "Small Text",
+   "label": "Goods on their way"
+  },
+  {
+   "default": "0",
+   "description": "Tells a customer expecting a delivery today that it is not coming.",
+   "fieldname": "event_delivery_cancelled",
+   "fieldtype": "Check",
+   "label": "Delivery cancelled"
+  },
+  {
+   "depends_on": "eval:doc.event_delivery_cancelled",
+   "description": "The message sent when a delivery is cancelled. Leave it empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_delivery_cancelled",
+   "fieldtype": "Small Text",
+   "label": "Delivery cancelled"
+  },
+  {
+   "fieldname": "owner_tab",
+   "fieldtype": "Tab Break",
+   "label": "The message to you"
+  },
+  {
+   "description": "One message when an order becomes real, to your own number rather than to a customer's. It is sent once per document, and never for a return.",
+   "fieldname": "owner_section",
+   "fieldtype": "Section Break",
+   "label": "New orders"
+  },
+  {
+   "default": "0",
+   "description": "Send me a WhatsApp message when an order comes in.",
+   "fieldname": "event_new_order",
+   "fieldtype": "Check",
+   "label": "Tell me about new orders"
+  },
+  {
+   "default": "Sales Order",
+   "depends_on": "eval:doc.event_new_order",
+   "description": "Which document means an order is real in your shop. A shop that quotes and confirms should leave this on Sales Order. A shop that sells over a counter never makes one and should set it to Sales Invoice. Only the one you pick alerts you, so an order that becomes both tells you once.",
+   "fieldname": "new_order_alert_on",
+   "fieldtype": "Select",
+   "label": "Count an order as real when I submit a",
+   "options": "Sales Order\nSales Invoice"
+  },
+  {
+   "depends_on": "eval:doc.event_new_order",
+   "description": "Where that message goes. Digits only, separated by commas if there are several, and everybody listed gets their own copy. A leading zero is fine here: a recipient is read against your own sending number's country.",
+   "fieldname": "alert_numbers",
+   "fieldtype": "Small Text",
+   "label": "Your WhatsApp numbers"
+  },
+  {
+   "depends_on": "eval:doc.event_new_order",
+   "description": "What that message says. <code>{admin_url}</code> is worth having here: it opens the document straight from your phone. Leave the box empty and nothing is sent, whatever the tick box says.",
+   "fieldname": "message_new_order",
+   "fieldtype": "Small Text",
+   "label": "Tell me about new orders"
   }
  ],
  "index_web_pages_for_search": 0,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-03 09:00:00.000000",
+ "modified": "2026-09-03 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Njiwa",
  "name": "Njiwa Settings",

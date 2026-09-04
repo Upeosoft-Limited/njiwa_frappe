@@ -25,14 +25,35 @@ class NjiwaSettings(Document):
         self.check_key_looks_like_a_key()
 
     def tidy_address(self) -> None:
+        """https only, because the API key rides on every request.
+
+        The key goes out in an Authorization header on every send and on every
+        Test connection, and that key is the whole authority over the
+        customer's WhatsApp account. Over http:// it is readable by anything on
+        the path, so an address without TLS is refused rather than accepted
+        with a warning. A site given a Njiwa address of its own can be given a
+        certificate along with it.
+        """
         self.base_url = (self.base_url or DEFAULT_BASE_URL).strip().rstrip("/")
-        if not self.base_url.startswith(("https://", "http://")):
+        if self.base_url.startswith("https://"):
+            return
+
+        if self.base_url.startswith("http://"):
             frappe.throw(
-                _("The Njiwa address must start with https://. It is currently {0}.").format(
-                    frappe.bold(self.base_url)
-                ),
-                title=_("That address will not work"),
+                _(
+                    "The Njiwa address must start with https://. {0} starts http://, "
+                    "which would send your API key across the network unencrypted, and "
+                    "that key is the whole authority over your WhatsApp account."
+                ).format(frappe.bold(self.base_url)),
+                title=_("That address is not encrypted"),
             )
+
+        frappe.throw(
+            _("The Njiwa address must start with https://. It is currently {0}.").format(
+                frappe.bold(self.base_url)
+            ),
+            title=_("That address will not work"),
+        )
 
     def tidy_sending_number(self) -> None:
         """A msisdn, digits only.

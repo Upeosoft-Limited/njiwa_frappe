@@ -14,23 +14,87 @@ bench get-app https://github.com/Upeosoft-Limited/njiwa_frappe
 bench --site yoursite.local install-app njiwa_frappe
 ```
 
-This app is developed inside the Njiwa repository, at `packages/njiwa-frappe`,
-and published here. To install from a local copy of that folder instead, do by
-hand what `bench get-app` does with a clone:
+The repository is private, so this works for a bench whose machine has a key
+that can read it. Over anonymous HTTPS the same address answers 404, which
+looks exactly like a repository that does not exist; if `bench get-app` gives
+you that, the access is what to check, not the address.
+
+This app is developed inside the Njiwa repository at `packages/njiwa-frappe`
+and published to that repository. To install from a local copy of the folder
+instead, do to it by hand what `bench get-app` does to a clone:
 
 ```bash
 cd ~/frappe-bench
 cp -r /path/to/njiwa/packages/njiwa-frappe apps/njiwa_frappe
 ./env/bin/pip install -e apps/njiwa_frappe
 grep -qx njiwa_frappe sites/apps.txt || echo njiwa_frappe >> sites/apps.txt
+bench build --app njiwa_frappe
 bench --site yoursite.local install-app njiwa_frappe
 bench --site yoursite.local clear-cache
 ```
 
+`bench build` is the line a copied folder needs and a clone would have got for
+free. It is what puts the app's images, the desk icon among them, under
+`/assets/njiwa_frappe/`.
+
+## Upgrade
+
+A site that already has Njiwa does not install it again. Running `install-app`
+there is not dangerous, but it does nothing whatever: Frappe answers `App
+njiwa_frappe already installed` and stops, leaving the version you just copied
+in unmigrated and the version you replaced still running. Use this instead:
+
+```bash
+cd ~/frappe-bench
+rm -rf apps/njiwa_frappe/njiwa_frappe
+cp -r /path/to/njiwa/packages/njiwa-frappe/. apps/njiwa_frappe/
+bench --site yoursite.local migrate
+bench --site yoursite.local clear-cache
+bench restart
+```
+
+The `rm -rf` takes out only the Python package inside the app folder, so a file
+that has gone away upstream goes away here too rather than lingering. The folder
+itself stays, and with it the editable install `pip` made the first time. That
+install points at the path and not at the files, so `pip` does not need to run
+again unless the app has taken on a dependency, and this one has none. The
+trailing `/.` in the `cp` line is what copies the contents in rather than
+nesting the folder inside itself.
+
+`bench migrate` is the line that applies the new version. It syncs the doctype,
+so a field added or renamed since your last deploy reaches the database, and it
+runs this app's `after_migrate` hook, which points `sites/assets/njiwa_frappe`
+back at the app's `public` folder. That link is the icon, and an upgrade needs
+it made again for the same reason a first install does.
+
+If the icon is missing afterwards, that link is the thing to check, and either
+of these makes it without reinstalling anything:
+
+```bash
+bench --site yoursite.local execute njiwa_frappe.install.link_assets
+bench build --app njiwa_frappe
+```
+
+The first does only that one thing and says what it did. The second is the
+ordinary route and makes the same link on its way past, but it also runs the
+whole asset build through node and yarn, which is a good deal of work for one
+symlink on a bench shared with other apps.
+
+`clear-cache` is for what the desk has already cached about the app, the
+workspace and the settings form among it. `bench restart` is because Python
+that is loaded stays loaded: until the web and worker processes come back, they
+are still running the code you replaced.
+
 ## Set it up
 
-Open **Njiwa Settings** (type it in the search bar). Every field explains
-itself on the form; in short:
+Njiwa has an icon on the **/apps** screen, and it opens the **Njiwa**
+workspace at `/app/njiwa`. **Njiwa Settings** is a shortcut on that workspace,
+and it is still in the awesome bar if you would rather type it. Both the icon
+and the workspace are shown only to the role that can open Njiwa Settings,
+which is System Manager. An icon that opens a page you are then refused is
+worse than no icon.
+
+Every field explains itself on the form; in short:
 
 | Field | What it is for |
 | --- | --- |
@@ -40,9 +104,32 @@ itself on the form; in short:
 | Send from | Which of your numbers sends, when the code does not say. Digits only, like 254712345678. |
 | Wait for the result | Off. Turn it on only in a script you are watching. |
 
-Save, then press **Test connection**. It reads the saved key and lists the
+Save, then confirm it twice. Both buttons read the saved settings, so save
+first or they will tell you to.
+
+**Test connection** proves the key. It reads the saved key and lists the
 numbers the account actually has, so you find out now rather than at the
-moment a customer should have been messaged.
+moment a customer should have been messaged. It asks a question and sends
+nothing.
+
+**Send test message** proves the rest of the way, as far as a phone in
+somebody's hand. Give it a number written however you have it, be that
+254712345678, +254 712 345 678 or 0712345678, and it sends one short fixed
+message and waits for Njiwa to finish rather than answering "queued". What
+comes back is the real outcome: the message id, the status, and which of your
+numbers it went from. You cannot choose the wording, and the send carries no
+idempotency key, so pressing Send twice sends twice.
+
+The button takes digits and nothing else. Spaces, a leading plus, dashes and
+brackets come off, and what is left has to be between 7 and 15 digits. A
+leading zero is fine here, because a recipient is read against the sending
+number's own country. A raw JID is the one thing this button refuses, where
+`send()` still accepts one: a JID ending `@g.us` is a group, and a press meant
+for one person would post to a group of hundreds.
+
+With a key beginning `sk_live_` that is a real WhatsApp message. It reaches
+the handset, the person holding it will read it, and it costs whatever a
+message costs. Send it to your own number.
 
 Start with a test key. Everything works, every message is stored, and nothing
 reaches a real phone until you swap the key.
@@ -74,6 +161,11 @@ An ERPNext attachment is already a URL, so it goes straight through:
 file_url = frappe.db.get_value("File", {"attached_to_name": doc.name}, "file_url")
 send(customer_number, document=frappe.utils.get_url(file_url), filename="INV-0001.pdf")
 ```
+
+Pass `wait=True` to hold the call until the message is sent or failed, or
+`wait=False` to answer as soon as Njiwa has stored it. Left alone it does
+whatever **Wait for the result** says in the settings, which is what you want
+almost every time.
 
 ### From a document event
 
