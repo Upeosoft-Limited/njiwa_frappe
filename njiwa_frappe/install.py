@@ -32,6 +32,7 @@ SETTINGS = "Njiwa Settings"
 def after_install() -> None:
     link_assets()
     seed_default_messages()
+    write_home_page()
 
 
 def after_migrate() -> None:
@@ -44,6 +45,22 @@ def after_migrate() -> None:
     """
     link_assets()
     seed_default_messages()
+    write_home_page()
+
+
+def write_home_page() -> str:
+    """Write the block the /desk/njiwa page is drawn with (see home.py).
+
+    A page that fails to draw is a blemish; an install or migrate that dies
+    over one is a great deal worse, so a failure is logged, not raised.
+    """
+    from njiwa_frappe.home import HomeBlock
+
+    try:
+        return HomeBlock().write()
+    except Exception:
+        frappe.log_error(title="Njiwa could not write its page", message=frappe.get_traceback())
+        return "The Njiwa page could not be written; see the Error Log."
 
 
 def link_assets() -> str:

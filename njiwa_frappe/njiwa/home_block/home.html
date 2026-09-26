@@ -1,0 +1,65 @@
+<div class="nj" data-state="loading">
+  <section class="nj-hero">
+    <div class="nj-brand">
+      <img class="nj-mark" data-slot="logo" src="/assets/njiwa_frappe/images/njiwa-mark.svg" alt="" />
+      <div>
+        <h2 class="nj-title">WhatsApp your customers</h2>
+        <p class="nj-sub">Receipts, payment thank-yous and order updates, sent from your own WhatsApp number through Njiwa.</p>
+      </div>
+    </div>
+    <div class="nj-hero-side">
+      <span class="nj-pill" data-slot="status"><span class="nj-dot"></span><span>Checking…</span></span>
+      <div class="nj-actions">
+        <button class="nj-btn nj-btn-primary" data-action="settings">Open settings</button>
+        <button class="nj-btn" data-action="test">Test connection</button>
+        <button class="nj-btn" data-action="send">Send a test message</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="nj-banner" data-slot="banner" hidden></p>
+
+  <section class="nj-stats">
+    <div class="nj-stat"><span class="nj-stat-label">Sent</span><strong data-slot="sent">–</strong><span class="nj-stat-foot">last 7 days</span></div>
+    <div class="nj-stat nj-stat-bad"><span class="nj-stat-label">Failed</span><strong data-slot="failed">–</strong><span class="nj-stat-foot">last 7 days</span></div>
+    <div class="nj-stat"><span class="nj-stat-label">Waiting</span><strong data-slot="queued">–</strong><span class="nj-stat-foot">queued to send</span></div>
+  </section>
+
+  <section class="nj-card" data-slot="setup">
+    <div class="nj-card-head">
+      <h3>Get set up</h3>
+      <span class="nj-muted" data-slot="setup-count"></span>
+    </div>
+    <div class="nj-progress"><span data-slot="setup-bar"></span></div>
+    <ol class="nj-steps" data-slot="steps"></ol>
+  </section>
+
+  <div class="nj-grid">
+    <section class="nj-card">
+      <div class="nj-card-head">
+        <h3>Messages to your customers</h3>
+        <button class="nj-link" data-action="wording">Edit the wording</button>
+      </div>
+      <p class="nj-muted nj-card-note">Every one is off until you switch it on. Each goes to the customer's mobile number on the document.</p>
+      <div data-slot="events"></div>
+    </section>
+
+    <div class="nj-side">
+      <section class="nj-card">
+        <div class="nj-card-head"><h3>Messages to you</h3></div>
+        <div data-slot="owner"></div>
+      </section>
+      <section class="nj-card">
+        <div class="nj-card-head">
+          <h3>Recent messages</h3>
+          <button class="nj-link" data-action="all">See all</button>
+        </div>
+        <ul class="nj-recent" data-slot="recent"></ul>
+      </section>
+      <section class="nj-help">
+        <a href="https://console.upeo.ai" target="_blank" rel="noopener">Njiwa console ↗</a>
+        <a href="https://docs.njiwa.upeo.ai" target="_blank" rel="noopener">Docs ↗</a>
+      </section>
+    </div>
+  </div>
+</div>
