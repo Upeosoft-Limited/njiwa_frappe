@@ -63,6 +63,32 @@ def write_home_page() -> str:
         return "The Njiwa page could not be written; see the Error Log."
 
 
+def fill_empty_wording() -> str:
+    """Put the standard wording into every message box that is empty.
+
+    Unlike seed_default_messages, this also fills a box that exists but holds
+    nothing, which is how a site ends up when its settings were saved before
+    the wording was ever seeded. Because an emptied box is also how a shop
+    turns one message off, this never runs by itself: it is for an owner who
+    asked for the standard wording back.
+
+        bench --site yoursite.local execute njiwa_frappe.install.fill_empty_wording
+    """
+    from njiwa_frappe.templates import DEFAULTS
+
+    saved = frappe.db.get_singles_dict(SETTINGS)
+    empty = {
+        f"message_{event}": wording
+        for event, wording in DEFAULTS.items()
+        if not (saved.get(f"message_{event}") or "").strip()
+    }
+    if not empty:
+        return "Every Njiwa message already has wording. Nothing was changed."
+    frappe.db.set_single_value(SETTINGS, empty)
+    frappe.clear_document_cache(SETTINGS, SETTINGS)
+    return f"Wrote the standard wording into {len(empty)} empty Njiwa message(s)."
+
+
 def link_assets() -> str:
     """Point sites/assets/njiwa_frappe at this app's public folder.
 

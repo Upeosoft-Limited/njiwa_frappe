@@ -61,3 +61,18 @@ class TestNjiwaHome(FrappeTestCase):
         self.assertEqual(HomeBlock().write(), "The Njiwa page is already up to date.")
         workspace = frappe.get_doc("Workspace", "Njiwa")
         self.assertIn(BLOCK, [b.custom_block_name for b in workspace.custom_blocks])
+
+
+class TestFillEmptyWording(FrappeTestCase):
+    def test_empty_boxes_get_the_standard_wording_and_written_ones_stay(self):
+        from njiwa_frappe.install import fill_empty_wording
+        from njiwa_frappe.templates import DEFAULTS
+
+        before = frappe.db.get_singles_dict("Njiwa Settings")
+        self.addCleanup(frappe.db.set_single_value, "Njiwa Settings",
+                        {f"message_{e}": before.get(f"message_{e}") for e in DEFAULTS})
+        frappe.db.set_single_value("Njiwa Settings", {"message_invoice_issued": "", "message_order_placed": "Mine"})
+        fill_empty_wording()
+        self.assertEqual(frappe.db.get_single_value("Njiwa Settings", "message_invoice_issued"), DEFAULTS["invoice_issued"])
+        self.assertEqual(frappe.db.get_single_value("Njiwa Settings", "message_order_placed"), "Mine")
+        self.assertIn("Nothing was changed", fill_empty_wording())
