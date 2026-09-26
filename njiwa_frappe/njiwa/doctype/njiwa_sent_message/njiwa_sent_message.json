@@ -20,16 +20,16 @@
  ],
  "fields": [
   {
-   "description": "The document whose submission or cancellation asked for this message.",
+   "description": "The kind of document the message was about.",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
-   "in_list_view": 1,
+   "in_list_view": 0,
    "label": "For document type",
    "options": "DocType",
    "read_only": 1
   },
   {
-   "description": "Plain text on purpose, and not a Dynamic Link. A dynamic link here would make Frappe refuse to delete any document this app had ever messaged about, which is not a price a shop should pay for a row it did not ask for.",
+   "description": "The document the message was about.",
    "fieldname": "reference_name",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -38,7 +38,7 @@
    "search_index": 1
   },
   {
-   "description": "Which of the events in Njiwa Settings this message belongs to.",
+   "description": "Which message in Njiwa Settings this was.",
    "fieldname": "event",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -51,7 +51,7 @@
   },
   {
    "default": "Queued",
-   "description": "Queued means the message was handed to a background worker and the worker has not answered yet. A row that stays Queued means the worker never ran: check that bench workers are up, and that Redis is reachable.",
+   "description": "Queued: waiting for a background worker. Stuck on Queued means the workers are not running.",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -61,14 +61,15 @@
    "read_only": 1
   },
   {
-   "description": "The WhatsApp number this went to, digits only.",
+   "description": "The WhatsApp number it went to.",
    "fieldname": "to_number",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Sent to",
    "read_only": 1
   },
   {
-   "description": "Njiwa's own id for the message. Look it up in the Njiwa console to see whether it was delivered and read, which is knowledge this site deliberately does not keep a second copy of.",
+   "description": "Look this up in the Njiwa console to see if it was delivered and read.",
    "fieldname": "message_id",
    "fieldtype": "Data",
    "label": "Njiwa message id",
@@ -79,7 +80,7 @@
    "fieldtype": "Section Break"
   },
   {
-   "description": "Sent to Njiwa with the message. Njiwa honours it for 24 hours and replays the first answer rather than sending again, so a job that runs twice does not message the customer twice. It is also this record's own name, which is what stops a second message being queued at all.",
+   "description": "Stops the same message being sent twice.",
    "fieldname": "idempotency_key",
    "fieldtype": "Data",
    "label": "Idempotency key",
@@ -87,7 +88,7 @@
    "reqd": 1
   },
   {
-   "description": "Why nothing was sent, in Njiwa's own words where it answered at all. The same sentence is written on the document's timeline, which is where anybody looking for it will be standing.",
+   "description": "Why it was not sent, in Njiwa's words.",
    "fieldname": "failure_reason",
    "fieldtype": "Small Text",
    "label": "Why it failed",
@@ -97,7 +98,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-09-03 12:00:00.000000",
+ "modified": "2026-09-27 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Njiwa",
  "name": "Njiwa Sent Message",

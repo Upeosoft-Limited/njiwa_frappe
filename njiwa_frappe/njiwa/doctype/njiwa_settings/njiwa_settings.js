@@ -1,14 +1,11 @@
 /**
  * The desk side of Njiwa Settings.
  *
- * Two buttons that ask Njiwa a question, and a headline that says what the
- * saved settings will do. Nothing here calls Njiwa on its own: opening this
- * page must not depend on Njiwa being up, so the live-or-test answer waits
- * until somebody presses Test connection.
- *
- * The headline says what state the settings are in, and nothing else. What
- * the app is for, and that nothing here decides when a message goes out, is
- * said once by the doctype itself at the top of the form.
+ * A header in the same look as the Njiwa page (/desk/njiwa): the site's logo,
+ * whether sending is on and whether the saved key is live or test, and the
+ * buttons that ask Njiwa a question. The live-or-test answer is read from the
+ * saved key's prefix through njiwa_frappe.home.summary, which never calls
+ * Njiwa, so opening this page still does not depend on Njiwa being up.
  *
  * Everything is inside one function because a bench is shared. Nothing in
  * here becomes a name another app could collide with.
@@ -27,14 +24,21 @@
 		},
 
 		refresh(frm) {
-			// Test connection comes first because it is the one that costs
-			// nothing: it proves the key, and the test message then proves the
-			// rest of the way. Neither is btn-primary. Save is the blue button
-			// on this form, and a second blue button beside it would argue with
-			// it over which one you came here to press.
-			frm.add_custom_button(__('Test connection'), () => test_connection(frm));
-			frm.add_custom_button(__('Send test message'), () => open_test_message_dialog(frm));
+			add_style();
+			$(frm.wrapper).addClass('njiwa-form');
 			show_state(frm);
+			// What the saved key is, and the site's logo. Read from this site
+			// only; nothing here reaches Njiwa.
+			frappe
+				.xcall('njiwa_frappe.home.summary')
+				.then((summary) => {
+					frm.njiwa_summary = summary;
+					if (frm.njiwa_key_is === null && summary.key !== 'none') {
+						frm.njiwa_key_is = summary.key;
+					}
+					show_state(frm);
+				})
+				.catch(() => {});
 		},
 
 		after_save(frm) {
@@ -86,61 +90,100 @@
 		});
 	}
 
-	/** The headline: on or off, and whatever is known about the saved key. */
+	/** The header: the site's logo, on or off, live or test, and the buttons. */
 	function show_state(frm) {
 		const on = Boolean(frm.doc.enabled);
-		const lines = [];
-
-		if (on) {
-			lines.push(`<b>${__('Njiwa is on.')}</b>`);
-			lines.push(key_line(frm));
-		} else {
-			lines.push(`<b>${__('Njiwa is off.')}</b> ` + __('Nothing will send.'));
+		const summary = frm.njiwa_summary || {};
+		const saved_key = frm.njiwa_key_is || (summary.key && summary.key !== 'none' ? summary.key : null);
+		let tone = 'none';
+		let status = __('No key saved yet');
+		if (!on) {
+			tone = 'off';
+			status = __('Sending is off');
+		} else if (saved_key === 'live') {
+			tone = 'live';
+			status = __('Live · messages reach real phones');
+		} else if (saved_key === 'test') {
+			tone = 'test';
+			status = __('Test key · nothing reaches a phone');
 		}
 
-		if (frm.is_dirty()) {
-			lines.push(
-				__('That is the form as it stands. It is true of the saved settings once you save.')
-			);
-		}
+		const logo = summary.logo || '/assets/njiwa_frappe/images/njiwa-mark.svg';
+		const dirty = frm.is_dirty()
+			? `<p class="njiwa-hero-note">${__('You have unsaved changes. Save before testing.')}</p>`
+			: '';
+		const $hero = $(`
+			<section class="njiwa-hero" role="status">
+				<div class="njiwa-hero-brand">
+					<img class="njiwa-hero-logo ${summary.logo ? 'is-wide' : ''}" src="${text(logo)}" alt="">
+					<div>
+						<h2>${__('WhatsApp settings')}</h2>
+						<p>${__('How this site sends WhatsApp messages through Njiwa, and which moments your customers hear about.')}</p>
+						${dirty}
+					</div>
+				</div>
+				<div class="njiwa-hero-side">
+					<span class="njiwa-pill" data-tone="${tone}"><span class="njiwa-dot"></span>${status}</span>
+					<div class="njiwa-hero-actions">
+						<button class="njiwa-btn" data-njiwa="back">${__('Njiwa home')}</button>
+						<button class="njiwa-btn" data-njiwa="test">${__('Test connection')}</button>
+						<button class="njiwa-btn njiwa-btn-primary" data-njiwa="send">${__('Send a test message')}</button>
+					</div>
+				</div>
+			</section>`);
+		$hero.on('click', '[data-njiwa]', (event) => {
+			const action = event.currentTarget.dataset.njiwa;
+			if (action === 'back') frappe.set_route('njiwa');
+			if (action === 'test') test_connection(frm);
+			if (action === 'send') open_test_message_dialog(frm);
+		});
 
-		// Two shapes as well as two colours, and the words say it either way.
-		// The colour is the block's own text colour, whatever the theme has
-		// made that: a colour picked to read against the light green block
-		// disappears into the dark one, and the dot is meant to be a second
-		// way of reading the state rather than a decoration.
-		const dot = on
-			? 'background: currentColor;'
-			: 'background: transparent; box-shadow: inset 0 0 0 3px currentColor;';
-
-		// A headline is appended, not replaced, so the one this drew last time
-		// has to go or they stack up. Only ours is taken out: another message on
-		// this form belongs to whoever put it there.
-		if (frm.layout && frm.layout.message) {
-			frm.layout.message.find('.njiwa-state').closest('.form-message').remove();
-		}
-
-		frm.dashboard.set_headline(
-			`<div class="njiwa-state" role="status" style="display: flex; gap: 10px; align-items: flex-start;">
-				<span aria-hidden="true" style="flex: 0 0 auto; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; ${dot}"></span>
-				<div>${lines.join('<br>')}</div>
-			</div>`,
-			on ? 'green' : 'red'
-		);
+		// Drawn again on every refresh; only ours is taken out.
+		const $layout = $(frm.layout.wrapper);
+		$layout.find('> .njiwa-hero').remove();
+		$layout.prepend($hero);
 	}
 
-	function key_line(frm) {
-		if (frm.njiwa_key_is === 'live') {
-			return __('Test connection says the saved key is a live key, so messages reach real phones.');
+	/** The header's look, added once per page load. Scoped to this form. */
+	function add_style() {
+		if (document.getElementById('njiwa-form-style')) {
+			return;
 		}
-		if (frm.njiwa_key_is === 'test') {
-			return __(
-				'Test connection says the saved key is a test key: every message is checked and stored, and nothing reaches WhatsApp.'
-			);
-		}
-		return __(
-			'Whether the saved key is live or test is what Test connection answers, and it has not been asked yet.'
-		);
+		const style = document.createElement('style');
+		style.id = 'njiwa-form-style';
+		style.textContent = `
+			.njiwa-form .njiwa-hero { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
+				margin: 12px 16px 4px; padding: 20px 22px; border-radius: 16px; color: #fff;
+				background: radial-gradient(120% 140% at 100% 0%, rgba(15,163,160,.55), rgba(15,163,160,0) 60%), #0c1a2b; }
+			.njiwa-form .njiwa-hero-brand { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; flex: 1 1 320px; min-width: 0; }
+			.njiwa-form .njiwa-hero-brand > div { flex: 1; min-width: 200px; }
+			.njiwa-form .njiwa-hero h2 { margin: 0; font-size: 20px; font-weight: 700; color: #fff; }
+			.njiwa-form .njiwa-hero p { margin: 4px 0 0; font-size: 13px; color: rgba(255,255,255,.78); max-width: 520px; }
+			.njiwa-form .njiwa-hero p.njiwa-hero-note { color: #fdd89a; font-weight: 600; }
+			.njiwa-form .njiwa-hero-logo { width: 48px; height: 48px; border-radius: 12px; background: #fff; padding: 6px; object-fit: contain; flex: none; }
+			.njiwa-form .njiwa-hero-logo.is-wide { width: auto; max-width: 190px; padding: 7px 12px; }
+			.njiwa-form .njiwa-hero-side { display: grid; gap: 10px; justify-items: end; }
+			.njiwa-form .njiwa-hero-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+			.njiwa-form .njiwa-btn { min-height: 32px; padding: 0 13px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+				border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.08); color: #fff; }
+			.njiwa-form .njiwa-btn:hover { background: rgba(255,255,255,.16); }
+			.njiwa-form .njiwa-btn-primary { background: ${TEAL}; border-color: ${TEAL}; }
+			.njiwa-form .njiwa-pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; }
+			.njiwa-form .njiwa-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+			.njiwa-form .njiwa-pill[data-tone="live"] { background: #d7f5f4; color: #06625f; }
+			.njiwa-form .njiwa-pill[data-tone="test"] { background: #fdf0d5; color: #8a5a00; }
+			.njiwa-form .njiwa-pill[data-tone="off"], .njiwa-form .njiwa-pill[data-tone="none"] { background: #fde4dc; color: #9a3412; }
+			.njiwa-form .form-section .section-head { font-weight: 700; }
+			.njiwa-form .frappe-control[data-fieldname^="event_"] .label-area { font-weight: 600; }
+			.njiwa-form .frappe-control[data-fieldname^="event_"] { margin-top: 10px; }
+			.njiwa-form .frappe-control[data-fieldname^="message_"] textarea { min-height: 72px; border-left: 3px solid ${TEAL}; }
+			.njiwa-form .frappe-control .help-box { font-size: 12px; }
+			@media (max-width: 600px) {
+				.njiwa-form .njiwa-hero { margin: 8px 8px 4px; padding: 16px; }
+				.njiwa-form .njiwa-hero-side { justify-items: start; }
+				.njiwa-form .njiwa-hero-actions { justify-content: flex-start; }
+			}`;
+		document.head.appendChild(style);
 	}
 
 	function open_test_message_dialog(frm) {
