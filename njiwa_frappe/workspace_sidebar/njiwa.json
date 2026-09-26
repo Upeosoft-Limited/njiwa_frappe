@@ -33,18 +33,6 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "mail",
-   "indent": 0,
-   "keep_closed": 0,
-   "label": "Sent messages",
-   "link_to": "Njiwa Sent Message",
-   "link_type": "DocType",
-   "show_arrow": 0,
-   "type": "Link"
-  },
-  {
-   "child": 0,
-   "collapsible": 1,
    "icon": "web",
    "indent": 0,
    "keep_closed": 0,
@@ -67,7 +55,7 @@
    "url": "https://docs.njiwa.upeo.ai"
   }
  ],
- "modified": "2026-09-27 00:00:00.000000",
+ "modified": "2026-09-27 01:00:00.000000",
  "modified_by": "Administrator",
  "module": "Njiwa",
  "name": "Njiwa",

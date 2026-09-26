@@ -1,7 +1,7 @@
 /**
  * The desk side of Njiwa Settings.
  *
- * A header in the same look as the Njiwa page (/desk/njiwa): the site's logo,
+ * A header in the same look as the Njiwa page (/desk/njiwa): the Njiwa logo,
  * whether sending is on and whether the saved key is live or test, and the
  * buttons that ask Njiwa a question. The live-or-test answer is read from the
  * saved key's prefix through njiwa_frappe.home.summary, which never calls
@@ -26,8 +26,9 @@
 		refresh(frm) {
 			add_style();
 			$(frm.wrapper).addClass('njiwa-form');
+			njiwa_width(frm.page.wrapper);
 			show_state(frm);
-			// What the saved key is, and the site's logo. Read from this site
+			// What the saved key is. Read from this site
 			// only; nothing here reaches Njiwa.
 			frappe
 				.xcall('njiwa_frappe.home.summary')
@@ -90,7 +91,7 @@
 		});
 	}
 
-	/** The header: the site's logo, on or off, live or test, and the buttons. */
+	/** The header: the Njiwa logo, on or off, live or test, and the buttons. */
 	function show_state(frm) {
 		const on = Boolean(frm.doc.enabled);
 		const summary = frm.njiwa_summary || {};
@@ -108,14 +109,13 @@
 			status = __('Test key · nothing reaches a phone');
 		}
 
-		const logo = summary.logo || '/assets/njiwa_frappe/images/njiwa-mark.svg';
 		const dirty = frm.is_dirty()
 			? `<p class="njiwa-hero-note">${__('You have unsaved changes. Save before testing.')}</p>`
 			: '';
 		const $hero = $(`
 			<section class="njiwa-hero" role="status">
 				<div class="njiwa-hero-brand">
-					<img class="njiwa-hero-logo ${summary.logo ? 'is-wide' : ''}" src="${text(logo)}" alt="">
+					<img class="njiwa-hero-logo is-wide" src="/assets/njiwa_frappe/images/njiwa-logo.svg" alt="Njiwa">
 					<div>
 						<h2>${__('WhatsApp settings')}</h2>
 						<p>${__('How this site sends WhatsApp messages through Njiwa, and which moments your customers hear about.')}</p>
@@ -144,6 +144,25 @@
 		$layout.prepend($hero);
 	}
 
+	/**
+	 * The same 850px column the Njiwa page (/desk/njiwa) has, so every Njiwa
+	 * screen lines up. The side panel (assign, attachments) is hidden here: none
+	 * of it means anything on these screens. Scoped to pages marked njiwa-page.
+	 */
+	function njiwa_width(wrapper) {
+		$(wrapper).addClass('njiwa-page');
+		if (document.getElementById('njiwa-width-style')) {
+			return;
+		}
+		const style = document.createElement('style');
+		style.id = 'njiwa-width-style';
+		style.textContent = `
+			.njiwa-page .layout-main { max-width: 850px; margin-left: auto; margin-right: auto; }
+			.njiwa-page .layout-side-section { display: none !important; }
+			.njiwa-page .layout-main-section-wrapper, .njiwa-page .layout-main-section { flex: 1 1 auto; max-width: 100%; width: 100%; }`;
+		document.head.appendChild(style);
+	}
+
 	/** The header's look, added once per page load. Scoped to this form. */
 	function add_style() {
 		if (document.getElementById('njiwa-form-style')) {
@@ -153,7 +172,7 @@
 		style.id = 'njiwa-form-style';
 		style.textContent = `
 			.njiwa-form .njiwa-hero { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between;
-				margin: 12px 16px 4px; padding: 20px 22px; border-radius: 16px; color: #fff;
+				margin: 12px 0 4px; padding: 20px 22px; border-radius: 16px; color: #fff;
 				background: radial-gradient(120% 140% at 100% 0%, rgba(15,163,160,.55), rgba(15,163,160,0) 60%), #0c1a2b; }
 			.njiwa-form .njiwa-hero-brand { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; flex: 1 1 320px; min-width: 0; }
 			.njiwa-form .njiwa-hero-brand > div { flex: 1; min-width: 200px; }
@@ -161,7 +180,7 @@
 			.njiwa-form .njiwa-hero p { margin: 4px 0 0; font-size: 13px; color: rgba(255,255,255,.78); max-width: 520px; }
 			.njiwa-form .njiwa-hero p.njiwa-hero-note { color: #fdd89a; font-weight: 600; }
 			.njiwa-form .njiwa-hero-logo { width: 48px; height: 48px; border-radius: 12px; background: #fff; padding: 6px; object-fit: contain; flex: none; }
-			.njiwa-form .njiwa-hero-logo.is-wide { width: auto; max-width: 190px; padding: 7px 12px; }
+			.njiwa-form .njiwa-hero-logo.is-wide { width: auto; max-width: 190px; padding: 9px 13px; }
 			.njiwa-form .njiwa-hero-side { display: grid; gap: 10px; justify-items: end; }
 			.njiwa-form .njiwa-hero-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 			.njiwa-form .njiwa-btn { min-height: 32px; padding: 0 13px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;

@@ -27,7 +27,7 @@
 .nj-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; min-width: 0; flex: 1 1 320px; }
 .nj-brand > div { min-width: 220px; flex: 1; }
 .nj-mark { width: 52px; height: 52px; border-radius: 14px; background: #fff; padding: 6px; flex: none; }
-.nj-mark.nj-logo { width: auto; height: 52px; max-width: 200px; object-fit: contain; padding: 8px 12px; }
+.nj-mark.nj-logo { width: auto; height: 52px; max-width: 200px; object-fit: contain; padding: 10px 14px; }
 .nj .nj-title { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
 .nj-sub { margin-top: 4px !important; font-size: 13.5px; color: rgba(255, 255, 255, 0.78); max-width: 520px; }
 .nj-hero-side { display: grid; gap: 10px; justify-items: end; }

@@ -17,12 +17,6 @@ let data = null;
 let busy = false;
 
 function render() {
-	if (data.logo) {
-		const img = slot("logo");
-		img.src = data.logo;
-		img.alt = "";
-		img.classList.add("nj-logo");
-	}
 	const s = data.key === "none" ? STATUS.none : !data.enabled ? STATUS.off : STATUS[data.key];
 	const pill = slot("status");
 	pill.dataset.tone = s.tone;

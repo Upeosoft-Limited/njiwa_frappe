@@ -14,7 +14,6 @@ Both are for System Managers only, the same people who can open the settings.
 from __future__ import annotations
 
 import os
-import re
 from typing import Any
 
 import frappe
@@ -43,7 +42,6 @@ class NjiwaHome:
         key = self._key_kind()
         events = self._events()
         return {
-            "logo": self._logo(),
             "enabled": bool(self.settings.enabled),
             "key": key,
             "send_from": self.settings.default_from or "",
@@ -63,18 +61,6 @@ class NjiwaHome:
         if key.startswith("sk_test_"):
             return "test"
         return "none"
-
-    @staticmethod
-    def _logo() -> str | None:
-        """The site's own logo, so the page wears the shop's brand; None keeps the Njiwa mark.
-
-        Frappe's and ERPNext's stock marks are not a brand the site chose, so
-        they count as none.
-        """
-        logo = frappe.db.get_single_value("Website Settings", "app_logo") or ""
-        if not logo or re.search(r"(frappe|erpnext)", logo, re.I):
-            return None
-        return logo
 
     def _label(self, fieldname: str, fallback: str) -> str:
         field = frappe.get_meta(SETTINGS).get_field(fieldname)
